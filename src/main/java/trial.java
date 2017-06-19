@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.*;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.restfb.json.JsonArray;
 import com.restfb.json.JsonObject;
+import com.sun.org.apache.xpath.internal.SourceTree;
 import com.sun.xml.internal.bind.v2.util.QNameMap;
 import jdk.internal.org.objectweb.asm.TypeReference;
 import jdk.nashorn.internal.ir.ObjectNode;
@@ -18,11 +19,30 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.codehaus.jettison.json.JSONObject;
+
+import static java.awt.SystemColor.info;
 import static spark.Spark.*;
+
+import java.net.InetAddress;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.io.IOException;
 import java.util.*;
+import org.elasticsearch.action.get.GetResponse;
+import org.elasticsearch.action.index.IndexResponse;
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.action.search.SearchType;
+
+import org.elasticsearch.client.transport.TransportClient;
+import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.common.transport.InetSocketTransportAddress;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.index.query.QueryBuilders.*;
+import org.elasticsearch.rest.RestStatus;
+import org.elasticsearch.transport.client.PreBuiltTransportClient;
+import sun.util.resources.cldr.st.CurrencyNames_st;
+
+import static org.elasticsearch.common.xcontent.XContentFactory.*;
 
 /**
  * Created by slan on 6/8/2017.
@@ -31,7 +51,41 @@ public class trial {
 
     public static void main(String args[]) throws Exception {
 
+        Settings settings = Settings.builder()
+                .put("cluster.name", "Oorah").build();
+        TransportClient client = new PreBuiltTransportClient(settings)
+                .addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName("http://oorah-admire04:9200"), 9200));
 
+
+
+        IndexResponse response = client.prepareIndex("newindex", "logs")
+                .setSource(jsonBuilder()
+                        .startObject()
+                        .field("hits", "hits")
+                      //  .field("postDate", new Date())
+                      //  .field("message", "trying out Elasticsearch")
+                        .endObject()
+                )
+                .get();
+
+        String _index = response.getIndex();
+        String _type = response.getType();
+        String _id = response.getId();
+        long _version = response.getVersion();
+        RestStatus status = response.status();
+
+       // GetResponse getResponse = client.prepareGet("newindex", "logs", "AVvAqdx88HYEMTt5PRbN").get();
+
+        SearchResponse searchResponse = client.prepareSearch("newindex")
+                .setTypes("logs")
+                .setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
+                .setQuery(QueryBuilders.termQuery("KadonID", "838383"))                 // Query
+               // .setPostFilter(QueryBuilders.rangeQuery("age").from(12).to(18))     // Filter
+                .setFrom(0).setSize(60).setExplain(true)
+                .get();
+        System.out.println(searchResponse);
+
+client.close();
 
         Scanner userInput = new Scanner(System.in);
 
@@ -40,6 +94,7 @@ public class trial {
 
             System.out.println("Please enter a donation id");
             int id = userInput.nextInt();
+
 
             HttpGet httpget = new HttpGet("http://oorah-admire04:9200/newindex/_search?q=KadonID:" + id + "");
             //HttpGet httpget = new HttpGet("http://oorah-admire04:9200/newindex/_source/_search?stored_fields=KadonID?q=KadonID" + id+ "");
@@ -60,17 +115,30 @@ public class trial {
             };
             String responseBody = httpclient.execute(httpget, responseHandler);
             System.out.println(responseBody);
+       //     SearchResponse firstResponse = responseBody.prepareSearch().execute().actionGet();
+
             final JsonNode arrNode = new ObjectMapper().readTree(responseBody).get("hits").get("hits");
 
-         Event e = new Event();
+
 
             System.out.println(arrNode);
 
 
+
+
+
+
+
             if (arrNode.isArray()) {
                 for (final JsonNode objNode : arrNode) {
+                    final Iterable<JsonNode> itereable = () -> objNode.get("_source").elements();
+                    itereable.forEach(elem -> System.out.println(elem.asText()));
+                    System.out.println("*********************************");
+
+                    }
 
 
+/*
                             if (objNode.get("_source").get("@timestamp") != null){
                                String Gettext = String.valueOf(objNode.get("_source").get("@timestamp"));
                                Date date = formatDate(Gettext);
@@ -96,8 +164,9 @@ public class trial {
                             }
 
                             System.out.println("***************************************");
+                            */
                         }
-                    }
+
 
 
 
