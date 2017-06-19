@@ -51,42 +51,7 @@ public class trial {
 
     public static void main(String args[]) throws Exception {
 
-        Settings settings = Settings.builder()
-                .put("cluster.name", "Oorah").build();
-        TransportClient client = new PreBuiltTransportClient(settings)
-                .addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName("http://oorah-admire04:9200"), 9200));
-
-
-
-        IndexResponse response = client.prepareIndex("newindex", "logs")
-                .setSource(jsonBuilder()
-                        .startObject()
-                        .field("hits", "hits")
-                      //  .field("postDate", new Date())
-                      //  .field("message", "trying out Elasticsearch")
-                        .endObject()
-                )
-                .get();
-
-        String _index = response.getIndex();
-        String _type = response.getType();
-        String _id = response.getId();
-        long _version = response.getVersion();
-        RestStatus status = response.status();
-
-       // GetResponse getResponse = client.prepareGet("newindex", "logs", "AVvAqdx88HYEMTt5PRbN").get();
-
-        SearchResponse searchResponse = client.prepareSearch("newindex")
-                .setTypes("logs")
-                .setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
-                .setQuery(QueryBuilders.termQuery("KadonID", "838383"))                 // Query
-               // .setPostFilter(QueryBuilders.rangeQuery("age").from(12).to(18))     // Filter
-                .setFrom(0).setSize(60).setExplain(true)
-                .get();
-        System.out.println(searchResponse);
-
-client.close();
-
+      
         Scanner userInput = new Scanner(System.in);
 
         CloseableHttpClient httpclient = HttpClients.createDefault();
