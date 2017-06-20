@@ -7,12 +7,13 @@ import java.awt.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+
 import java.util.List;
 
 /**
  * Created by slan on 6/12/2017.
  */
-public class Event  {
+public class Event implements Comparator<Event> {
     private Date dateTime;
     private Integer KadonId;
     private String EventName;
@@ -33,7 +34,7 @@ public class Event  {
         EventsList = eventsList;
     }
 
-    private List<Event> EventsList;
+    public List<Event> EventsList;
 
     public Integer getKadonId() {
         return KadonId;
@@ -117,15 +118,11 @@ public class Event  {
     }
 
 
-    public static int compareTo(List<Event> eventList) {
 
-        for (int i =0; i< eventList.size(); i++)
-        {
+   @Override
+    public int compare(Event one, Event two) {
 
-            return eventList.get(i).getDateTime().compareTo(eventList.get(i+i).getDateTime());
-
-        }
-        return 0;
+     return one.getDateTime().compareTo(two.getDateTime());
     }
 
 

@@ -27,6 +27,8 @@ public class trial {
 
         List<JsonNode> list = new ArrayList<>();
         List<Event> eventList = new ArrayList<>();
+        ArrayList finalList = new ArrayList();
+        Map map = new HashMap();
 
         //Scanner userInput = new Scanner(System.in);
 
@@ -75,6 +77,7 @@ public class trial {
 
 */
                     if (arrNode.isArray()) {
+
                         for (final JsonNode objNode : arrNode) {
 
                             Event event = new Event(Integer.parseInt(id));
@@ -82,17 +85,24 @@ public class trial {
                                 String Gettext = String.valueOf(objNode.get("_source").get("@timestamp"));
                                 Date date = formatDate(Gettext);
                                 event.setDateTime(date);
+                                map.put("date", event);
+                               // finalList.add(map);
+
                              //   System.out.println(event.getDateTime());
 
                                 if (objNode.get("_source").get("EventName") != null){
                                     String eventName = ("Event Name: " + objNode.get("_source").get("EventName").asText());
                                     event.setEventName(eventName);
+                                    map.put("eventname", event);
+                                   // finalList.add(map);
+
                               //      System.out.println(event.getEventName());
                                 }
-                                eventList.add(event);
-                            }
+                                  //  map.put("eventname", event);
 
-                     
+                                eventList.add(event);
+                                finalList.add(event);
+                            }
                         }
 
 
@@ -104,6 +114,8 @@ public class trial {
                         System.out.println(eventList.get(i).getEventName());
                     }
 
+                //    Event compareTo = new Event(Integer.parseInt(id));
+
 
 
                     System.out.println("After sort");
@@ -113,12 +125,24 @@ public class trial {
                             System.out.println(eventList.get(i).getDateTime());
                             System.out.println(eventList.get(i).getEventName());
                         }
+
                         }
+                
+                    model.put("template", "templates/event.vtl");
 
 
-        model.put("template","templates/event.vtl");
+                for (int i = 0; i < eventList.size(); i++){
+                   // Map map = new HashMap();
+                    model.put("eventname",eventList.get(i).getEventName());
+                    model.put("date", eventList.get(i).getDateTime());
+                //    finalList.add(map);
+
+                }
+
+                model.put("eventList",eventList);
+                model.put("finalList", finalList);
+
                 return new ModelAndView(model, "templates/layout.vtl");
-
             },new VelocityTemplateEngine());
 
 
@@ -137,6 +161,11 @@ public class trial {
             e.printStackTrace();
         }
         return response;
+    }
+
+    public static int compareTo(Event one, Event two) {
+
+        return  one.getDateTime().compareTo(two.getDateTime());
     }
 
 }
