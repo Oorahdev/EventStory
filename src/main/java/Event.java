@@ -4,20 +4,26 @@ import com.fasterxml.jackson.databind.JsonNode;
 import org.mortbay.util.ajax.JSON;
 
 import java.awt.*;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.List;
 
 /**
  * Created by slan on 6/12/2017.
  */
-public abstract class Event implements Comparable {
+public class Event  {
     private Date dateTime;
-    private String KadonId;
+    private Integer KadonId;
     private String EventName;
     private String Stage;
     private String OldValue;
     private String NewValue;
     private String CarType;
+
+    public Event(Integer kadonId) {
+        KadonId = kadonId;
+    }
 
     public List<Event> getEventsList() {
         return EventsList;
@@ -29,11 +35,11 @@ public abstract class Event implements Comparable {
 
     private List<Event> EventsList;
 
-    public String getKadonId() {
+    public Integer getKadonId() {
         return KadonId;
     }
 
-    public void setKadonId(String kadonId) {
+    public void setKadonId(Integer kadonId) {
         KadonId = kadonId;
     }
 
@@ -85,14 +91,50 @@ public abstract class Event implements Comparable {
         this.dateTime = datetime;
     }
 
+    public List<Event> getEvent() {
+        return event;
+    }
 
-/*
-    //@Override
+    public void setEvent(List<Event> event) {
+        this.event = event;
+    }
+
+    public List<Event> event;
+
+    public static java.util.Date formatDate(String date) {
+        Date response = new Date();
+        try {
+
+            String finaltext = date.substring(1);
+            String last = finaltext.replace("T", " ");
+            String really = last.replace("Z", " ");
+            SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            response = formatter.parse(really);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return response;
+    }
+
+
+    public static int compareTo(List<Event> eventList) {
+
+        for (int i =0; i< eventList.size(); i++)
+        {
+
+            return eventList.get(i).getDateTime().compareTo(eventList.get(i+i).getDateTime());
+
+        }
+        return 0;
+    }
+
+
+    /*
     public boolean sort(JsonNode one, JsonNode two){
         if (one.get("_source").get("@timestamp") == null || two.get("_source").get("@timestamp")== null)
             return false;
         return one.get("_source").get("@timestamp").equals(two.get("_source").get("@timestamp"));
     }
-    */
 
+*/
 }

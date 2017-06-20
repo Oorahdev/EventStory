@@ -1,48 +1,22 @@
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.*;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.restfb.json.JsonArray;
-import com.restfb.json.JsonObject;
-import com.sun.org.apache.xpath.internal.SourceTree;
-import com.sun.xml.internal.bind.v2.util.QNameMap;
-import jdk.internal.org.objectweb.asm.TypeReference;
-import jdk.nashorn.internal.ir.ObjectNode;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
-import org.codehaus.jettison.json.JSONObject;
+import spark.ModelAndView;
+import spark.template.velocity.VelocityTemplateEngine;
 
-import static java.awt.SystemColor.info;
-import static spark.Spark.*;
-
-import java.net.InetAddress;
+import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.io.IOException;
 import java.util.*;
-import org.elasticsearch.action.get.GetResponse;
-import org.elasticsearch.action.index.IndexResponse;
-import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.action.search.SearchType;
 
-import org.elasticsearch.client.transport.TransportClient;
-import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.common.transport.InetSocketTransportAddress;
-import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.index.query.QueryBuilders.*;
-import org.elasticsearch.rest.RestStatus;
-import org.elasticsearch.transport.client.PreBuiltTransportClient;
-import sun.util.resources.cldr.st.CurrencyNames_st;
+import static spark.Spark.get;
 
-import static org.elasticsearch.common.xcontent.XContentFactory.*;
 
 /**
  * Created by slan on 6/8/2017.
@@ -51,18 +25,24 @@ public class trial {
 
     public static void main(String args[]) throws Exception {
 
-      
-        Scanner userInput = new Scanner(System.in);
+        List<JsonNode> list = new ArrayList<>();
+        List<Event> eventList = new ArrayList<>();
+
+        //Scanner userInput = new Scanner(System.in);
 
         CloseableHttpClient httpclient = HttpClients.createDefault();
-        try {
-
-            System.out.println("Please enter a donation id");
-            int id = userInput.nextInt();
 
 
+            get("/event", (req, res) -> {
+                Map<String, Object> model = new HashMap<>();
+                String id =
+                        req.queryParams("id");
+
+           // System.out.println("Please enter a donation id");
+          //  int id = userInput.nextInt();
+
+               // try {
             HttpGet httpget = new HttpGet("http://oorah-admire04:9200/newindex/_search?q=KadonID:" + id + "");
-            //HttpGet httpget = new HttpGet("http://oorah-admire04:9200/newindex/_source/_search?stored_fields=KadonID?q=KadonID" + id+ "");
 
             ResponseHandler<String> responseHandler = new ResponseHandler<String>() {
 
@@ -79,88 +59,86 @@ public class trial {
                 }
             };
             String responseBody = httpclient.execute(httpget, responseHandler);
-            System.out.println(responseBody);
-       //     SearchResponse firstResponse = responseBody.prepareSearch().execute().actionGet();
+
 
             final JsonNode arrNode = new ObjectMapper().readTree(responseBody).get("hits").get("hits");
 
-
-
-            System.out.println(arrNode);
-
-
-
-
-
-
-
-            if (arrNode.isArray()) {
-                for (final JsonNode objNode : arrNode) {
-                    final Iterable<JsonNode> itereable = () -> objNode.get("_source").elements();
-                    itereable.forEach(elem -> System.out.println(elem.asText()));
-                    System.out.println("*********************************");
-
+/*
+                if (arrNode.isArray()) {
+                    for (final JsonNode objNode : arrNode) {
+                        final Iterable<JsonNode> itereable = () -> objNode.get("_source").elements();
+                        itereable.forEach(elem ->  list.add(elem));
+                      //  itereable.forEach(element -> event.getDateTime());
+                        itereable.forEach(elems -> System.out.println(elems.asText()));
+                        System.out.println("*********************************");
                     }
 
+*/
+                    if (arrNode.isArray()) {
+                        for (final JsonNode objNode : arrNode) {
 
-/*
-                            if (objNode.get("_source").get("@timestamp") != null){
-                               String Gettext = String.valueOf(objNode.get("_source").get("@timestamp"));
-                               Date date = formatDate(Gettext);
-                               System.out.println(date);
-                            }
-                            if (objNode.get("_source").get("KadonID") != null){
-                                System.out.println("KadonId: " + objNode.get("_source").get("KadonID").asText());
-                            }
-                            if (objNode.get("_source").get("EventName") != null){
-                                System.out.println("Event Name: " + objNode.get("_source").get("EventName").asText());
-                            }
-                            if (objNode.get("_source").get("Stage") != null){
-                                System.out.println("Stage: " + objNode.get("_source").get("Stage").asText());
-                            }
-                            if (objNode.get("_source").get("OldValue") != null) {
-                                System.out.println("Old Value: " + objNode.get("_source").get("OldValue").asText());
-                            }
-                            if (objNode.get("_source").get("NewValue") != null){
-                                System.out.println("New Value: " + objNode.get("_source").get("NewValue").asText());
-                            }
-                            if (objNode.get("_source").get("CarType") != null) {
-                                System.out.println("Car Type: " + objNode.get("_source").get("CarType").asText());
+                            Event event = new Event(Integer.parseInt(id));
+                            if (objNode.get("_source").get("@timestamp") != null) {
+                                String Gettext = String.valueOf(objNode.get("_source").get("@timestamp"));
+                                Date date = formatDate(Gettext);
+                                event.setDateTime(date);
+                             //   System.out.println(event.getDateTime());
+
+                                if (objNode.get("_source").get("EventName") != null){
+                                    String eventName = ("Event Name: " + objNode.get("_source").get("EventName").asText());
+                                    event.setEventName(eventName);
+                              //      System.out.println(event.getEventName());
+                                }
+                                eventList.add(event);
                             }
 
-                            System.out.println("***************************************");
-                            */
+                     
                         }
 
 
+                    System.out.println("Before Sort");
+                    System.out.println("*********************************");
+
+                    for (int i= 0; i<eventList.size(); i++){
+                        System.out.println(eventList.get(i).getDateTime());
+                        System.out.println(eventList.get(i).getEventName());
+                    }
 
 
 
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+                    System.out.println("After sort");
+                    System.out.println("*********************************");
+
+                        for (int i= 0; i<eventList.size(); i++){
+                            System.out.println(eventList.get(i).getDateTime());
+                            System.out.println(eventList.get(i).getEventName());
+                        }
+                        }
+
+
+        model.put("template","templates/event.vtl");
+                return new ModelAndView(model, "templates/layout.vtl");
+
+            },new VelocityTemplateEngine());
+
 
     }
 
-    public static Date formatDate(String date){
-Date response = new Date();
-        try{
+    public static java.util.Date formatDate(String date) {
+        Date response = new Date();
+        try {
 
             String finaltext = date.substring(1);
-            String last = finaltext.replace("T"," ");
+            String last = finaltext.replace("T", " ");
             String really = last.replace("Z", " ");
             SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
             response = formatter.parse(really);
-        }
-        catch (ParseException e) {
+        } catch (ParseException e) {
             e.printStackTrace();
         }
-return response;
+        return response;
     }
 
-    public static String sortDate(String json){
-
-
-        return "";
-    }
 }
+
+
