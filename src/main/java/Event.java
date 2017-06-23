@@ -26,6 +26,10 @@ public class Event implements Comparator<Event> {
         KadonId = kadonId;
     }
 
+    public Event() {
+
+    }
+
     public List<Event> getEventsList() {
         return EventsList;
     }

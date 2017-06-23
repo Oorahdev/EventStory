@@ -16,6 +16,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 import static spark.Spark.get;
+import static spark.Spark.modelAndView;
 
 
 /**
@@ -26,17 +27,25 @@ public class trial {
     public static void main(String args[]) throws Exception {
 
 
-        List<Event> eventList = new ArrayList<Event>();
+        List<Event> eventList = new ArrayList<>();
         List finalList = new ArrayList();
 
+        String layout = "templates/layout.vtl";
 
         CloseableHttpClient httpclient = HttpClients.createDefault();
+
+        get("/home", (request, response) -> {
+            HashMap maps = new HashMap();
+            maps.put("template", "templates/home.vtl");
+            maps.put("id", request.queryParams("id"));
+            return  new ModelAndView(maps, layout);
+        }, new VelocityTemplateEngine());
 
 
             get("/event", (req, res) -> {
                 Map<String, Object> model = new HashMap<>();
                 Map map = new HashMap();
-                String id = req.queryParams("id");
+               String id = req.queryParams("id");
 
 
             HttpGet httpget = new HttpGet("http://oorah-admire04:9200/newindex/_search?q=KadonID:" + id + "");
@@ -56,31 +65,16 @@ public class trial {
                 }
 
             };
-                
-
-           // String responseBody = httpclient.execute(httpget, responseHandler);
-
                 final JsonNode arrNode = new ObjectMapper().readTree(httpclient.execute(httpget, responseHandler)).get("hits").get("hits");
 
-       //     final JsonNode arrNode = new ObjectMapper().readTree(responseBody).get("hits").get("hits");
 
-/*
-                if (arrNode.isArray()) {
-                    for (final JsonNode objNode : arrNode) {
-                        final Iterable<JsonNode> itereable = () -> objNode.get("_source").elements();
-                        itereable.forEach(elem ->  list.add(elem));
-                      //  itereable.forEach(element -> event.getDateTime());
-                        itereable.forEach(elems -> System.out.println(elems.asText()));
-                        System.out.println("*********************************");
-                    }
-
-*/
+Event event = new Event();
 
                     if (arrNode.isArray()) {
 
                         for (final JsonNode objNode : arrNode) {
 
-                            Event event = new Event(Integer.parseInt(id));
+                             event = new Event(Integer.parseInt(id));
                                 if (objNode.get("_source").get("@timestamp") != null) {
                                     String Gettext = String.valueOf(objNode.get("_source").get("@timestamp"));
                                     Date date = formatDate(Gettext);
@@ -96,37 +90,18 @@ public class trial {
                                 event.setEventName(eventName);
                             }
                             //eventList.add(event);
+                            if (event.getDateTime() != null)
                             finalList.add(event.getDateTime());
+                            if (event.getEventName() != null)
                             finalList.add(event.getEventName());
+                            if (event.getNewValue() != null)
                             finalList.add(event.getNewValue());
-
                     }
-
-/*
-
-                    System.out.println("Before Sort");
-                    System.out.println("*********************************");
-
-                    for (int i= 0; i< eventList.size(); i++){
-                        System.out.println(eventList.get(i).getDateTime());
-                        System.out.println(eventList.get(i).getEventName());
-                    }
-                    System.out.println("After sort");
-                    System.out.println("*********************************");
-
-                        for (int i= 0; i<eventList.size(); i++){
-                            System.out.println(eventList.get(i).getDateTime());
-                            System.out.println(eventList.get(i).getEventName());
-                        }
-*/
-
                         }
 
                     model.put("template", "templates/event.vtl");
-                    model.put("eventList",eventList);
+
                     model.put("finalList", finalList);
-
-
 
 
 
@@ -149,11 +124,6 @@ public class trial {
             e.printStackTrace();
         }
         return response;
-    }
-
-    public static int compareTo(Event one, Event two) {
-
-        return  one.getDateTime().compareTo(two.getDateTime());
     }
 
 }
