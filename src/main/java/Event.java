@@ -22,6 +22,18 @@ public class Event implements Comparator<Event> {
     private String NewValue;
     private String CarType;
 
+    public Event(Date dateTime, Integer kadonId, String eventName, String stage, String oldValue, String newValue, String carType, List<Event> eventsList, List<Event> event) {
+        this.dateTime = dateTime;
+        KadonId = kadonId;
+        EventName = eventName;
+        Stage = stage;
+        OldValue = oldValue;
+        NewValue = newValue;
+        CarType = carType;
+        EventsList = eventsList;
+        this.event = event;
+    }
+
     public Event(Integer kadonId) {
         KadonId = kadonId;
     }
@@ -88,11 +100,11 @@ public class Event implements Comparator<Event> {
         CarType = carType;
     }
 
-    public Date getDateTime(){
+    public Date getDateTime() {
         return dateTime;
     }
 
-    public void setDateTime(Date datetime){
+    public void setDateTime(Date datetime) {
         this.dateTime = datetime;
     }
 
@@ -122,20 +134,13 @@ public class Event implements Comparator<Event> {
     }
 
 
-
-   @Override
+    @Override
     public int compare(Event one, Event two) {
 
-     return one.getDateTime().compareTo(two.getDateTime());
+
+            Date thisTime = one.getDateTime();
+            Date anotherTime = two.getDateTime();
+            return (thisTime.compareTo(anotherTime) > 0 ? -1 : (thisTime == anotherTime ? 0 : 1));
+
     }
-
-
-    /*
-    public boolean sort(JsonNode one, JsonNode two){
-        if (one.get("_source").get("@timestamp") == null || two.get("_source").get("@timestamp")== null)
-            return false;
-        return one.get("_source").get("@timestamp").equals(two.get("_source").get("@timestamp"));
-    }
-
-*/
 }

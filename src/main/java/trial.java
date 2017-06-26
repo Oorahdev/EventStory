@@ -16,7 +16,6 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 import static spark.Spark.get;
-import static spark.Spark.modelAndView;
 
 
 /**
@@ -27,14 +26,14 @@ public class trial {
     public static void main(String args[]) throws Exception {
 
 
-        List<Event> eventList = new ArrayList<>();
-        List finalList = new ArrayList();
+
 
         String layout = "templates/layout.vtl";
 
         CloseableHttpClient httpclient = HttpClients.createDefault();
 
         get("/home", (request, response) -> {
+
             HashMap maps = new HashMap();
             maps.put("template", "templates/home.vtl");
             maps.put("id", request.queryParams("id"));
@@ -43,8 +42,10 @@ public class trial {
 
 
             get("/event", (req, res) -> {
+                ArrayList<Event> eventList = new ArrayList<>();
+
                 Map<String, Object> model = new HashMap<>();
-                Map map = new HashMap();
+
                String id = req.queryParams("id");
 
 
@@ -67,16 +68,15 @@ public class trial {
             };
                 final JsonNode arrNode = new ObjectMapper().readTree(httpclient.execute(httpget, responseHandler)).get("hits").get("hits");
 
-
 Event event = new Event();
 
                     if (arrNode.isArray()) {
 
                         for (final JsonNode objNode : arrNode) {
 
-                             event = new Event(Integer.parseInt(id));
+                             event = new EventBuilder().setKadonId(Integer.parseInt(id)).createEvent();
                                 if (objNode.get("_source").get("@timestamp") != null) {
-                                    String Gettext = String.valueOf(objNode.get("_source").get("@timestamp"));
+                                    String Gettext = String.valueOf(objNode.get("_source").get("@timestamp").asText());
                                     Date date = formatDate(Gettext);
                                     event.setDateTime(date);
                                 }
@@ -86,22 +86,27 @@ Event event = new Event();
                                 }
 
                             if (objNode.get("_source").get("NewValue") != null){
-                                String eventName = ("New Value: " + objNode.get("_source").get("NewValue").asText());
-                                event.setEventName(eventName);
+                                String newValue = ("New Value: " + objNode.get("_source").get("NewValue").asText());
+                                event.setNewValue(newValue);
                             }
-                            //eventList.add(event);
-                            if (event.getDateTime() != null)
-                            finalList.add(event.getDateTime());
-                            if (event.getEventName() != null)
-                            finalList.add(event.getEventName());
-                            if (event.getNewValue() != null)
-                            finalList.add(event.getNewValue());
+
+                            eventList.add(event);
+
                     }
                         }
 
+                        Collections.sort(eventList, new Comparator<Event>() {
+                            public int compare(Event one, Event two) {
+                                Date thisTime = one.getDateTime();
+                                Date anotherTime = two.getDateTime();
+                               return thisTime.compareTo(anotherTime) < 0 ? -1 : (thisTime == anotherTime ? 0 : 1);
+                            }});
+
+
+
                     model.put("template", "templates/event.vtl");
 
-                    model.put("finalList", finalList);
+                    model.put("eventList", eventList);
 
 
 

@@ -1,11 +1,20 @@
 <h1>My Event!</h1>
 
 
-
 <ul>
-    #foreach($event in $finalList)
-    <li>$event</li>
+    #foreach($event in $eventList)
+
+    #if($event.dateTime)
+    <li>$event.dateTime</li>
+    #end
+    #if($event.EventName)
+    <li>$event.EventName</li>
+    #end
+    #if($event.NewValue)
+    <li>$event.NewValue</li>
+    #end
     <br>
     #end
+
 </ul>
 
