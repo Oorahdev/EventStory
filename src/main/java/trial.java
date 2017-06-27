@@ -8,32 +8,25 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import spark.ModelAndView;
+import spark.Request;
 import spark.template.velocity.VelocityTemplateEngine;
-
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
-
 import static spark.Spark.get;
 
-
-/**
- * Created by slan on 6/8/2017.
- */
 public class trial {
 
     public static void main(String args[]) throws Exception {
 
 
-
-
         String layout = "templates/layout.vtl";
+
 
         CloseableHttpClient httpclient = HttpClients.createDefault();
 
         get("/home", (request, response) -> {
-
             HashMap maps = new HashMap();
             maps.put("template", "templates/home.vtl");
             maps.put("id", request.queryParams("id"));
@@ -43,15 +36,13 @@ public class trial {
 
             get("/event", (req, res) -> {
                 ArrayList<Event> eventList = new ArrayList<>();
-
                 Map<String, Object> model = new HashMap<>();
-
                String id = req.queryParams("id");
 
 
             HttpGet httpget = new HttpGet("http://oorah-admire04:9200/newindex/_search?q=KadonID:" + id + "");
 
-            ResponseHandler<String> responseHandler = new ResponseHandler<String>() {
+            ResponseHandler<String> responseHandler = new ResponseHandler<String>()  {
 
                 @Override
                 public String handleResponse(
@@ -68,13 +59,14 @@ public class trial {
             };
                 final JsonNode arrNode = new ObjectMapper().readTree(httpclient.execute(httpget, responseHandler)).get("hits").get("hits");
 
-Event event = new Event();
+                Event event = new Event();
 
                     if (arrNode.isArray()) {
 
                         for (final JsonNode objNode : arrNode) {
 
-                             event = new EventBuilder().setKadonId(Integer.parseInt(id)).createEvent();
+
+
                                 if (objNode.get("_source").get("@timestamp") != null) {
                                     String Gettext = String.valueOf(objNode.get("_source").get("@timestamp").asText());
                                     Date date = formatDate(Gettext);
@@ -84,14 +76,11 @@ Event event = new Event();
                                     String eventName = ("Event Name: " + objNode.get("_source").get("EventName").asText());
                                     event.setEventName(eventName);
                                 }
-
                             if (objNode.get("_source").get("NewValue") != null){
                                 String newValue = ("New Value: " + objNode.get("_source").get("NewValue").asText());
                                 event.setNewValue(newValue);
                             }
-
                             eventList.add(event);
-
                     }
                         }
 
@@ -102,16 +91,12 @@ Event event = new Event();
                                return thisTime.compareTo(anotherTime) < 0 ? -1 : (thisTime == anotherTime ? 0 : 1);
                             }});
 
-
-
                     model.put("template", "templates/event.vtl");
-
                     model.put("eventList", eventList);
 
 
-
-                return new ModelAndView(model, "templates/layout.vtl");
-                },new VelocityTemplateEngine());
+    return new ModelAndView(model, "templates/layout.vtl");
+            },new VelocityTemplateEngine());
 
 
     }
@@ -129,6 +114,10 @@ Event event = new Event();
             e.printStackTrace();
         }
         return response;
+    }
+    private static boolean shouldReturnHtml(Request request) {
+        String accept = request.headers("Accept");
+        return accept != null && accept.contains("/event");
     }
 
 }

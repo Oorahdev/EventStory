@@ -1,11 +1,4 @@
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import org.mortbay.util.ajax.JSON;
 
-import java.awt.*;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 import java.util.List;
@@ -15,14 +8,10 @@ import java.util.List;
  */
 public class Event implements Comparator<Event> {
     private Date dateTime;
-    private Integer KadonId;
+    private int KadonId;
     private String EventName;
-    private String Stage;
-    private String OldValue;
-    private String NewValue;
-    private String CarType;
 
-    public Event(Date dateTime, Integer kadonId, String eventName, String stage, String oldValue, String newValue, String carType, List<Event> eventsList, List<Event> event) {
+    public Event(Date dateTime, int kadonId, String eventName, String stage, String oldValue, String newValue, String carType) {
         this.dateTime = dateTime;
         KadonId = kadonId;
         EventName = eventName;
@@ -30,33 +19,25 @@ public class Event implements Comparator<Event> {
         OldValue = oldValue;
         NewValue = newValue;
         CarType = carType;
-        EventsList = eventsList;
-        this.event = event;
     }
+
+    private String Stage;
+    private String OldValue;
+    private String NewValue;
+    private String CarType;
 
     public Event(Integer kadonId) {
         KadonId = kadonId;
     }
 
     public Event() {
-
     }
 
-    public List<Event> getEventsList() {
-        return EventsList;
-    }
-
-    public void setEventsList(List<Event> eventsList) {
-        EventsList = eventsList;
-    }
-
-    public List<Event> EventsList;
-
-    public Integer getKadonId() {
+    public int getKadonId() {
         return KadonId;
     }
 
-    public void setKadonId(Integer kadonId) {
+    public void setKadonId(int kadonId) {
         KadonId = kadonId;
     }
 
@@ -108,39 +89,12 @@ public class Event implements Comparator<Event> {
         this.dateTime = datetime;
     }
 
-    public List<Event> getEvent() {
-        return event;
-    }
-
-    public void setEvent(List<Event> event) {
-        this.event = event;
-    }
-
-    public List<Event> event;
-
-    public static java.util.Date formatDate(String date) {
-        Date response = new Date();
-        try {
-
-            String finaltext = date.substring(1);
-            String last = finaltext.replace("T", " ");
-            String really = last.replace("Z", " ");
-            SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-            response = formatter.parse(really);
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
-        return response;
-    }
 
 
     @Override
     public int compare(Event one, Event two) {
-
-
             Date thisTime = one.getDateTime();
             Date anotherTime = two.getDateTime();
             return (thisTime.compareTo(anotherTime) > 0 ? -1 : (thisTime == anotherTime ? 0 : 1));
-
     }
 }
