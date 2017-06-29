@@ -18,16 +18,17 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 import static spark.Spark.get;
+import static spark.Spark.port;
 
 
 /**
  * Created by slan on 6/8/2017.
  */
-public class trial {
+public class EventListByKadonId {
 
     public static void main(String args[]) throws Exception {
+ port(8020);
 
-        
         String layout = "templates/layout.vtl";
 
         CloseableHttpClient httpclient = HttpClients.createDefault();
@@ -48,6 +49,7 @@ public class trial {
             Map<String, Object> model = new HashMap<>();
 
             String id = req.queryParams("id");
+            String format = req.queryParams("format");
 
 
             HttpGet httpget = new HttpGet("http://oorah-admire04:9200/newindex/_search?q=KadonID:" + id + "");
@@ -69,7 +71,7 @@ public class trial {
             };
             final JsonNode arrNode = new ObjectMapper().readTree(httpclient.execute(httpget, responseHandler)).get("hits").get("hits");
 
-            Event event = new Event();
+            Event event = new EventBuilder().createEvent();
 
             if (arrNode.isArray()) {
 
@@ -148,11 +150,11 @@ else {
         return response;
     }
 
-
-    private static boolean shouldReturnJson(Request request) {
-        String accept = request.headers("Accept");
-        return accept != null && accept.contains("text/json");
+    private static boolean shouldReturnJson(Request request){
+        String format = request.queryParams("format");
+        return format != null && format.contains("json");
     }
+
 }
 
 
